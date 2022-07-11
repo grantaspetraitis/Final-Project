@@ -1,8 +1,10 @@
+/* Register form */
+
 .form {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 50px;
+  margin-top: 50px;
   
 }
 
@@ -15,9 +17,52 @@
   border-style: hidden hidden solid hidden;
 }
 
+.input:focus {
+  outline: none;
+}
+
 .btn {
   width: 100px;
   border-style: hidden;
   padding: 10px;
   margin-top: 20px;
+  cursor: pointer;
+  background-color: red;
+}
+
+.btn:hover {
+  background-color: rgb(172, 0, 0);
+}
+
+
+/* Navbar */
+
+.navbar li {
+  list-style: none;
+  padding: 30px;
+}
+
+.navbar li a {
+  text-decoration: none;
+  color: red;
+  font-weight: bold;
+  font-size: 1.3em;
+}
+
+.navbar {
+  display: flex;
+  position: relative;
+  left: 50%;
+}
+
+.navbar-container {
+  display: flex;
+  position: fixed;
+  background-color: rgba(255, 255, 255, 0.947);
+  width: 100%;
+  top: 0;
+}
+
+body {
+  height: 200vh;
 }

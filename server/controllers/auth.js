@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../db').getPool();
 
 exports.createUser = async (req, res) => {
-    const { name, username, email, password} = req.body;
+    const { name, username, email, password } = req.body;
     const date = new Date();
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
@@ -11,10 +11,11 @@ exports.createUser = async (req, res) => {
     pool.query('SELECT email FROM users WHERE email = ? OR username = ?', [email, username], (err, result) => {
         if(err) throw err;
         if(result.length > 0) return res.status(400)
+        // kaip padaryti kad i frontenda nusiustu zinute kad jau yra vartotojas
 
         pool.query('INSERT INTO users SET name = ?, email = ?, username = ?, password = ?, register_date = ?', [name, email, username, hashedPass, date], (err, result) => {
             if (!err) {
-                const token = jwt.sign({ user: { id: result.insertId, name, email } }, process.env.JWT_SECRET);
+                const token = jwt.sign({ user: { id: result.insertId, name, email }}, process.env.JWT_SECRET);
                 res.status(200).cookie('AccessToken', token, {
                     maxAge: 3600000,
                     httpOnly: true
@@ -24,4 +25,9 @@ exports.createUser = async (req, res) => {
             }
         })
     })
+}
+
+exports.loginUser = (req, res) => {
+    const { email, password } = req.body;
+
 }
