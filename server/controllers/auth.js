@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../db').getPool();
 
 exports.createUser = async (req, res) => {
-    const { name, email, username, password} = req.body;
+    const { name, username, email, password} = req.body;
     const date = new Date();
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
