@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db').getPool();
 
 exports.getQuestions = async (req, res) => {
-    pool.query('SELECT * FROM posts', (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, posts.like_amount, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id', (err, result) => {
         if(!err) return res.send(result);
     })
 }
@@ -46,9 +46,11 @@ exports.getProfile = async (req, res) => {
     }
     const ID = decoded.user.user_id;
     
-    pool.query('SELECT * FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_id, users.username, posts.post_title, posts.post_body, posts.like_amount FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
         if(err) throw err;
+        console.log(result)
         res.status(200).send(result);
+
     })
 }
 
@@ -57,6 +59,6 @@ exports.getQuestion = async (req, res) => {
 
     pool.query('SELECT * FROM posts WHERE post_id = ?', [ID], (err, result) => {
         if(err) throw err;
-        res.status(200).send(result);
+        res.status(200).send(result[0]);
     })
 }
