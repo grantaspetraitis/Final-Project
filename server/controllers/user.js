@@ -26,7 +26,7 @@ exports.addQuestion = async (req, res) => {
     const { title, body } = req.body;
     pool.query('INSERT INTO posts SET poster_id = ?, post_title = ?, post_body = ?, post_date = ?', [ID, title, body, createDate], (err, result) => {
         if(err) throw err;
-        res.status(200).send({ success: true });
+        res.status(200).send({ id: result.insertId });
     })
 }
 
@@ -45,10 +45,18 @@ exports.getProfile = async (req, res) => {
         return res.status(401).send({ error: 'You must be logged in to view your profile' })
     }
     const ID = decoded.user.user_id;
-    // const ID = req.params.id;
     
     pool.query('SELECT * FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
         if(err) throw err;
-        res.send(result);
+        res.status(200).send(result);
+    })
+}
+
+exports.getQuestion = async (req, res) => {
+    const ID = req.params.id;
+
+    pool.query('SELECT * FROM posts WHERE post_id = ?', [ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send(result);
     })
 }

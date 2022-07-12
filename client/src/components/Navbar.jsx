@@ -5,7 +5,14 @@ import logo from '../images/logo.PNG'
 
 const Navbar = () => {
 
-    const { login } = useContext(AppContext);
+    const { login, setLogin } = useContext(AppContext);
+
+    const navigate = useNavigate()
+
+    const logout = () => {
+        setLogin(null);
+        navigate('/login')
+    }
 
     return (
         <nav className="navbar-container">
@@ -21,6 +28,9 @@ const Navbar = () => {
                         </li>
                         <li>
                             <Link to="/profile">My profile</Link>
+                        </li>
+                        <li>
+                            <span style={{ cursor: "pointer" }} onClick={logout}>Log out</span>
                         </li>
 
                     </>
