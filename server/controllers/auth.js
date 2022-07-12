@@ -35,7 +35,7 @@ exports.loginUser = (req, res) => {
             if(!isPasswordCorrect) return res.status(400).send({ error: 'Incorrect credentials' });
 
             const token = jwt.sign({ user }, process.env.JWT_SECRET);
-            res.status(200).send({ token: token });
+            res.status(200).send({ token: token, username: user.username, id: user.user_id });
         } else {
             res.status(400).send({ error: 'User does not exist' })
         }

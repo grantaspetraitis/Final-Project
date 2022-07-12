@@ -2,9 +2,11 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context";
-import AppContextProvider from "../Context";
+import { useContext } from "react";
 
 const Login = () => {
+
+    const { setLoginAndStore } = useContext(AppContext);
 
     const navigate = useNavigate();
 
@@ -43,7 +45,11 @@ const Login = () => {
         if(response.ok) {
             toast.success('Logged in successfully')
             navigate('/questions')
-            AppContextProvider.setLoginAndStore(json.token)
+            setLoginAndStore({
+                username: json.username,
+                token: json.token,
+                id: json.id
+            })
         } else {
             toast.error(json.error);
         }
