@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import AppContextProvider from './Context';
 import AddQuestion from './components/AddQuestion';
 import Profile from './pages/Profile';
+import QuestionPage from './pages/QuestionPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path='/register' element={<Register />} />
             <Route path='/login' element={<Login />} />
             <Route path='/profile' element={<Profile />} />
+            <Route path='/questions/:id' element={<QuestionPage />} />
           </Routes>
         </Router>
       </AppContextProvider>

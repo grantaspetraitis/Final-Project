@@ -6,7 +6,7 @@ import { useContext } from "react";
 
 const Login = () => {
 
-    const { setLoginAndStore } = useContext(AppContext);
+    const { setLogin } = useContext(AppContext);
 
     const navigate = useNavigate();
 
@@ -45,7 +45,7 @@ const Login = () => {
         if(response.ok) {
             toast.success('Logged in successfully')
             navigate('/questions')
-            setLoginAndStore({
+            setLogin({
                 username: json.username,
                 token: json.token,
                 id: json.id

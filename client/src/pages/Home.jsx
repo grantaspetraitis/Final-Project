@@ -14,10 +14,11 @@ const Home = () => {
 
     useEffect(() => {
         fetchData();
-    })
+    }, [])
 
     return (
         <>
+        <h1 style={{ marginTop: 200, padding: 10 }}>See what the community is talking about</h1>
             <div className="container">
                 {
                     questions ? (
