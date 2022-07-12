@@ -4,7 +4,7 @@ import logo from '../images/logo.PNG'
 const Navbar = () => {
     return (
         <nav className="navbar-container">
-            <img style={{ width: "300px" }} src={logo}></img>
+            <img style={{ width: "300px" }} alt="logo" src={logo}></img>
             <ul className="navbar">
                 <li>
                     <Link to="/questions">Forum</Link>

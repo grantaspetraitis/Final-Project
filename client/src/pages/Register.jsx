@@ -59,19 +59,19 @@ const Register = () => {
             <h1 style={{ textAlign: "center", color: "red", marginTop: "200px" }}>Sign up for a new account</h1>
             <form className="form" onSubmit={onSubmit}>
                 <div className="form-element">
-                    <input className="input" type="text" value={name} placeholder="Full name" onChange={onChange} name="name" />
+                    <input required className="input" type="text" value={name} placeholder="Full name" onChange={onChange} name="name" />
                 </div>
                 <div className="form-element">
-                    <input className="input" type="text" value={username} placeholder="Username" onChange={onChange} name="username" />
+                    <input required className="input" type="text" value={username} placeholder="Username" onChange={onChange} name="username" />
                 </div>
                 <div className="form-element">
-                    <input className="input" type="email" value={email} placeholder="Email address" onChange={onChange} name="email" />
+                    <input required className="input" type="email" value={email} placeholder="Email address" onChange={onChange} name="email" />
                 </div>
                 <div className="form-element">
-                    <input className="input" type="password" value={password} placeholder="Password" onChange={onChange} name="password" />
+                    <input required className="input" type="password" value={password} placeholder="Password" onChange={onChange} name="password" />
                 </div>
                 <div className="form-element">
-                    <input className="input" type="password" value={password2} placeholder="Repeat password" onChange={onChange} name="password2" />
+                    <input required className="input" type="password" value={password2} placeholder="Repeat password" onChange={onChange} name="password2" />
                 </div>
                 <button className="btn">Sign up</button>
             </form>

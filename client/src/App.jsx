@@ -9,7 +9,7 @@ import Login from './pages/Login';
 function App() {
   return (
     <>
-      <Toaster position="top-center" reverseOrder={false}/>
+      <Toaster position="top-center" reverseOrder={false} />
       <Router>
         <Navbar />
         <Routes>
