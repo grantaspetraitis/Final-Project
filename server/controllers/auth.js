@@ -10,8 +10,7 @@ exports.createUser = async (req, res) => {
 
     pool.query('SELECT email FROM users WHERE email = ? OR username = ?', [email, username], (err, result) => {
         if(err) throw err;
-        if(result.length > 0) return res.status(400).send({ success: false })
-        // kaip padaryti kad i frontenda nusiustu zinute kad jau yra vartotojas
+        if(result.length > 0) return res.status(400).send({ error: 'User already exists' })
 
         pool.query('INSERT INTO users SET name = ?, email = ?, username = ?, password = ?, register_date = ?', [name, email, username, hashedPass, date], (err, result) => {
             if (err) {
@@ -33,17 +32,13 @@ exports.loginUser = (req, res) => {
 
             const hashedPass = user.password;
             const isPasswordCorrect = await bcrypt.compare(password, hashedPass);
-            if(!isPasswordCorrect) return res.status(400).send({ success: false });
-            // Kaip nusiusti zinute kad passwordas neteisingas
+            if(!isPasswordCorrect) return res.status(400).send({ error: 'Incorrect credentials' });
 
             const token = jwt.sign({ user }, process.env.JWT_SECRET);
-            res.status(200).cookie('AccessToken', token, {
-                maxAge: 3600000,
-                httpOnly: true
-            }).send({ success: true });
+            res.status(200).send({ token: token });
         } else {
-            res.send({ success: false })
-            // kaip pasakyti kad nera tokio vartotojo
+            res.status(400).send({ error: 'User does not exist' })
         }
     })
 }
+

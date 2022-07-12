@@ -5,19 +5,22 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import AppContextProvider from './Context';
 
 function App() {
   return (
     <>
-      <Toaster position="top-center" reverseOrder={false} />
-      <Router>
-        <Navbar />
-        <Routes>
-          <Route path='/questions' element={<Home />} />
-          <Route path='/register' element={<Register />} />
-          <Route path='/login' element={<Login />} />
-        </Routes>
-      </Router>
+      <AppContextProvider>
+        <Toaster position="top-center" reverseOrder={false} />
+        <Router>
+          <Navbar />
+          <Routes>
+            <Route path='/questions' element={<Home />} />
+            <Route path='/register' element={<Register />} />
+            <Route path='/login' element={<Login />} />
+          </Routes>
+        </Router>
+      </AppContextProvider>
     </>
   );
 }

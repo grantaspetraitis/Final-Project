@@ -48,7 +48,8 @@ const Register = () => {
                 toast.success('Registered successfully')
                 navigate('/login')
             } else {
-                toast.error('Registration failed, try again')
+                const json = await response.json();
+                toast.error(json.error)
             }
         }
     }
