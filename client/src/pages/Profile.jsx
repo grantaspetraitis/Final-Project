@@ -29,7 +29,7 @@ const Profile = () => {
     return (
         <>
             {login ? (
-            <div className="container">
+            <div className="profile-question-container">
                 <h3 style={{ padding: "30px" }}>Your questions</h3>
                 {
                     data ? data.map((data, i) => <Card key={i} data={data}></Card>) : <p>Loading</p>
