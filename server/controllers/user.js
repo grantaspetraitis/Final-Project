@@ -4,15 +4,19 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db').getPool();
 
 exports.getQuestions = async (req, res) => {
-    pool.query('SELECT posts.post_title, posts.post_body, posts.like_amount, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id', (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id', (err, result) => {
         if(err) throw err;
         const ids = result.map(res => res.post_id);
-        pool.query('SELECT SUM (rating) AS rating, post_id FROM likes WHERE post_id IN (?)', [ids], (err, result2) => {
+        pool.query('SELECT SUM (rating) AS rating, post_id FROM likes WHERE post_id IN (?) GROUP BY post_id', [ids], (err, result2) => {
             if(err) throw err;
             const posts = result.map(post => {
-                const rating = result2.find(res => res.post_id === post.post_id).rating;
-                return {...post, like_amount: rating}
+                const rating = result2.find(res => res.post_id === post.post_id);
+                const like_amount = rating ? rating.rating : 0;
+                console.log(rating)
+                return {...post, like_amount: like_amount}
+                
             })
+            console.log(posts)
             res.send(posts)
         })
     })
@@ -54,7 +58,7 @@ exports.getProfile = async (req, res) => {
     }
     const ID = decoded.user.user_id;
     
-    pool.query('SELECT posts.post_id, users.username, posts.post_title, posts.post_body, posts.like_amount FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_id, users.username, posts.post_title, posts.post_body FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
         if(err) throw err;
         res.status(200).send(result);
 
