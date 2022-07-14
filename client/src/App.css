@@ -94,11 +94,21 @@
 /* Question styles */
 
 .question-container {
-  margin-top: 150px;
+  position: relative;
   border: 1px solid rgb(214, 214, 214);
   margin-left: 20px;
   margin-right: 20px;
   padding: 20px;
+  margin-bottom: 10px;
+}
+
+.single-question-container {
+  margin-top: 170px;
+  border: 1px solid rgb(214, 214, 214);
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 20px;
+  margin-bottom: 50px;
 }
 
 
@@ -110,4 +120,26 @@
 
 .ml-10 {
   margin-left: 10px;
+}
+
+/* Edit question form */
+
+.edit-question-form {
+  margin-top: 50px;
+}
+
+/* Answer form */
+
+.answer-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Answer card */
+
+.answer-card-container {
+  border: 1px solid rgb(208, 208, 208);
+  margin-left: 20px;
+  margin-right: 20px;
 }

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db').getPool();
 
 exports.getQuestions = async (req, res) => {
-    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id', (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, post_date FROM posts JOIN users ON user_id = poster_id', (err, result) => {
         if(err) throw err;
         const ids = result.map(res => res.post_id);
         pool.query('SELECT SUM (rating) AS rating, post_id FROM likes WHERE post_id IN (?) GROUP BY post_id', [ids], (err, result2) => {
@@ -12,11 +12,8 @@ exports.getQuestions = async (req, res) => {
             const posts = result.map(post => {
                 const rating = result2.find(res => res.post_id === post.post_id);
                 const like_amount = rating ? rating.rating : 0;
-                console.log(rating)
                 return {...post, like_amount: like_amount}
-                
             })
-            console.log(posts)
             res.send(posts)
         })
     })
@@ -34,7 +31,7 @@ exports.addQuestion = async (req, res) => {
         return res.status(401).send({ error: 'You must be logged in to post a question' })
     }
     const ID = decoded.user.user_id;
-    const createDate = new Date();
+    const createDate = new Date().toISOString();
     const { title, body } = req.body;
     pool.query('INSERT INTO posts SET poster_id = ?, post_title = ?, post_body = ?, post_date = ?', [ID, title, body, createDate], (err, result) => {
         if(err) throw err;
@@ -43,7 +40,23 @@ exports.addQuestion = async (req, res) => {
 }
 
 exports.editQuestion = async (req, res) => {
+    let token, decoded;
 
+    try{
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to view your profile' })
+    }
+    const USER_ID = decoded.user.user_id;
+    const POST_ID = req.params.id;
+    const { title, body } = req.body;
+
+    pool.query('UPDATE posts SET post_title = ?, post_body = ? WHERE poster_id = ? AND post_id = ?', [title, body, USER_ID, POST_ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send({id: POST_ID})
+    })
 }
 
 exports.getProfile = async (req, res) => {
@@ -68,9 +81,8 @@ exports.getProfile = async (req, res) => {
 exports.getQuestion = async (req, res) => {
     const ID = req.params.id;
 
-    pool.query('SELECT * FROM posts WHERE post_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
         if(err) throw err;
-
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if(err) throw err;
             const rating = result2[0].rating;
@@ -104,5 +116,33 @@ exports.rating = async (req, res) => {
     pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [post_id], (err, result) => {
         if(err) throw err;
         res.send(result[0].rating);
+    })
+}
+
+exports.addAnswer = async (req, res) => {
+    let token, decoded;
+
+    try {
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to post an answer' })
+    }
+    const ID = decoded.user.user_id;
+    const POST_ID = req.params.id;
+    const createDate = new Date();
+    const { body } = req.body;
+    pool.query('INSERT INTO answers SET answerer_id = ?, answer_body = ?, post_date = ?, post_id = ?', [ID, body, createDate, POST_ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send({ id: POST_ID });
+    })
+}
+
+exports.getAnswers = async (req, res) => {
+    const ID = req.params.id;
+    pool.query('SELECT answers.answer_body, answers.post_date, users.username FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send(result)
     })
 }

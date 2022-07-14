@@ -24,6 +24,7 @@ function App() {
             <Route path='/login' element={<Login />} />
             <Route path='/profile' element={<Profile />} />
             <Route path='/questions/:id' element={<QuestionPage />} />
+            <Route path='/questions/:id/answers' element={<QuestionPage />} />
           </Routes>
         </Router>
       </AppContextProvider>
