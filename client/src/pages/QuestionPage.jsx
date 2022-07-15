@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { AppContext } from "../Context";
@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 const QuestionPage = () => {
 
     const params = useParams();
+    const [isLoaded, setIsLoaded]= useState(false);
     const [question, setQuestion] = useState(null);
     const [editForm, setEditForm] = useState(null);
     const { login } = useContext(AppContext);
@@ -59,9 +60,10 @@ const QuestionPage = () => {
 
     useEffect(() => {
         if(question === null) fetchData();
-        if(answers === null) fetchAnswers();
+        if(answers === null || isLoaded === false) fetchAnswers();
+        setIsLoaded(true)
         
-    }, [handleClick, answers])
+    }, [handleClick, isLoaded])
 
     const onClose = e => {
         setEditForm(null);
@@ -80,6 +82,7 @@ const QuestionPage = () => {
             navigate('/questions')
         }
     }
+    console.log(answers)
 
     return (
         <div>
@@ -117,7 +120,7 @@ const QuestionPage = () => {
                 }
             </div>
             {
-                answers ? answers.map((answer, i) => <AnswerCard key={i} body={answer.answer_body} post_date={answer.post_date} user={answer.username} />) : <h1>Loading answers</h1>
+                answers ? answers.map((answer, i) => <AnswerCard key={i} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} />) : <h1>Loading answers</h1>
             }
             <AddAnswer post_id={params.id} />
 

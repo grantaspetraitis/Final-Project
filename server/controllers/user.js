@@ -143,7 +143,7 @@ exports.addAnswer = async (req, res) => {
 
 exports.getAnswers = async (req, res) => {
     const ID = req.params.id;
-    pool.query('SELECT answers.answer_body, answers.post_date, users.username FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
+    pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if(err) throw err;
         const time = result.map(result => result.post_date.toLocaleString());
         res.status(200).send(result)
@@ -177,5 +177,33 @@ exports.adminDeletePost = async (req, res) => {
     pool.query('DELETE FROM posts WHERE post_id = ?', [POST_ID], (err, result) => {
         if(err) throw err;
         res.status(200).send(result);
+    })
+}
+
+exports.answerRating = async (req, res) => {
+    const rating = Math.min(Math.max(req.body.rating, -1), 1);
+    const post_id = req.body.id;
+    let token, decoded;
+
+    try {
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to rate' })
+    }
+    const user_id = decoded.user.user_id;
+
+    pool.query('UPDATE answer_likes SET rating = ? WHERE answer_id = ? AND user_id = ?', [rating, post_id, user_id], (err, result) => {
+        if(err) throw err;
+        if(result.affectedRows < 1){
+            pool.query('INSERT INTO answer_likes SET rating = ?, answer_id = ?, user_id = ?', [rating, post_id, user_id], (err, result) => {
+                if(err) throw err;
+            })
+        }
+    })
+    pool.query('SELECT SUM (rating) AS rating FROM answer_likes WHERE answer_id = ?', [post_id], (err, result) => {
+        if(err) throw err;
+        res.send(result[0].rating);
     })
 }
