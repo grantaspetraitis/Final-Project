@@ -29,15 +29,17 @@ const Profile = () => {
     return (
         <>
             {login ? (
-            <div className="profile-question-container">
-                <h3 style={{ padding: "30px" }}>Your questions</h3>
-                {
-                    data ? data.map((data, i) => <Card key={i} data={data}></Card>) : <p>Loading</p>
-                }
-            </div>
-            ) : (
-                toast.error('You must be logged in to view this page')
-            )
+                <>
+                    <h2 style={{ marginTop: 200, marginLeft: 50 }}>Hi, {login.username}!</h2>
+                    <div className="profile-question-container">
+                        <h3 style={{ padding: "30px" }}>Your threads:</h3>
+                        {
+                            data ? data.map((data, i) => <Card key={i} data={data}></Card>) : <p>Loading</p>
+                        }
+                    </div>
+                </>
+            ) : toast.error('You must be logged in to view this page')
+
             }
         </>
     );

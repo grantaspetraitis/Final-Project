@@ -61,6 +61,7 @@
   background-color: rgba(255, 255, 255, 0.947);
   width: 100%;
   top: 0;
+  z-index: 99;
 }
 
 
@@ -77,10 +78,10 @@
 /* Card styles */
 
 .profile-question-container {
-  margin-top: 200px;
-  border: 1px solid rgb(216, 215, 215);
+  margin-top: 100px;
   padding: 10px;
   display: flex;
+  flex-direction: column;
   margin-left: 20px;
   margin-right: 20px;
 }
@@ -142,4 +143,5 @@
   border: 1px solid rgb(208, 208, 208);
   margin-left: 20px;
   margin-right: 20px;
+  padding: 20px;
 }

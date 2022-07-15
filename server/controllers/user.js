@@ -31,7 +31,7 @@ exports.addQuestion = async (req, res) => {
         return res.status(401).send({ error: 'You must be logged in to post a question' })
     }
     const ID = decoded.user.user_id;
-    const createDate = new Date().toISOString();
+    const createDate = new Date();
     const { title, body } = req.body;
     pool.query('INSERT INTO posts SET poster_id = ?, post_title = ?, post_body = ?, post_date = ?', [ID, title, body, createDate], (err, result) => {
         if(err) throw err;
@@ -52,8 +52,9 @@ exports.editQuestion = async (req, res) => {
     const USER_ID = decoded.user.user_id;
     const POST_ID = req.params.id;
     const { title, body } = req.body;
+    const edit_date = new Date();
 
-    pool.query('UPDATE posts SET post_title = ?, post_body = ? WHERE poster_id = ? AND post_id = ?', [title, body, USER_ID, POST_ID], (err, result) => {
+    pool.query('UPDATE posts SET post_title = ?, post_body = ?, wasEdited = ?, edit_date = ? WHERE poster_id = ? AND post_id = ?', [title, body, true, edit_date, USER_ID, POST_ID], (err, result) => {
         if(err) throw err;
         res.status(200).send({id: POST_ID})
     })
@@ -79,9 +80,10 @@ exports.getProfile = async (req, res) => {
 }
 
 exports.getQuestion = async (req, res) => {
+
     const ID = req.params.id;
 
-    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.edit_date FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
         if(err) throw err;
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if(err) throw err;
@@ -143,6 +145,37 @@ exports.getAnswers = async (req, res) => {
     const ID = req.params.id;
     pool.query('SELECT answers.answer_body, answers.post_date, users.username FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if(err) throw err;
+        const time = result.map(result => result.post_date.toLocaleString());
         res.status(200).send(result)
+    })
+}
+
+exports.editAnswer = async (req, res) => {
+    let token, decoded;
+
+    try{
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to edit you answer' })
+    }
+
+    const ANSWER_ID = req.params.id;
+    const USER_ID = decoded.user.user_id;
+    const { body } = req.body;
+
+    pool.query('UPDATE answers SET answer_body = ? WHERE answerer_id = ? AND answer_id = ?', [body, USER_ID, ANSWER_ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send({ id: ANSWER_ID });
+    })
+}
+
+exports.adminDeletePost = async (req, res) => {
+    const POST_ID = req.params.id;
+
+    pool.query('DELETE FROM posts WHERE post_id = ?', [POST_ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send(result);
     })
 }

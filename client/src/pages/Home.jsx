@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import Question from "../components/Question";
+import loading from '../images/loading.gif'
 
 const Home = () => {
 
@@ -24,7 +25,7 @@ const Home = () => {
                     questions ? (
                         questions.map((question, i) => <Question key={i} data={question}></Question>)
                     ) : (
-                        <h1>Loading</h1>
+                        <img src={loading} alt="loading"></img>
                     )
                 }
             </div>

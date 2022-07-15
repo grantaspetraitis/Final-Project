@@ -48,7 +48,8 @@ const Login = () => {
             setLogin({
                 username: json.username,
                 token: json.token,
-                id: json.id
+                id: json.id,
+                role: json.role
             })
         } else {
             toast.error(json.error);

@@ -8,10 +8,12 @@ router.get('/questions', user.getQuestions);
 router.post('/questions', user.addQuestion);
 router.get('/questions/:id', user.getQuestion);
 router.patch('/questions/:id', user.editQuestion);
+router.delete('/questions/:id', user.adminDeletePost);
 router.get('/profile', user.getProfile);
 router.post('/login', auth.loginUser);
 router.post('/questions/:id/rate', user.rating);
 router.post('/questions/:id/answers', user.addAnswer);
 router.get('/questions/:id/answers', user.getAnswers);
+router.patch('/questions/:id/answers/:id', user.editAnswer);
 
 module.exports = router;
