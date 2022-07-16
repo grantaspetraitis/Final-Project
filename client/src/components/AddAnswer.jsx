@@ -6,9 +6,9 @@ import { AppContext } from "../Context";
 
 const AddAnswer = (props) => {
 
-    const questionParams = useParams();
     const { login } = useContext(AppContext);
     const navigate = useNavigate();
+    const [answer, setAnswer] = useState(null);
 
     const [formData, setFormData] = useState({ body: '' })
 
@@ -37,6 +37,7 @@ const AddAnswer = (props) => {
         if (response.ok) {
             toast.success('Added answer successfully')
             navigate(`/questions/${json.id}`)
+            setAnswer(json)
         } else {
             toast.error(json.error);
         }

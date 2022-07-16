@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../Context";
 
-const EditAnswer = () => {
+const EditAnswer = (props) => {
 
     const [formData, setFormData] = useState({ body: '' });
     const params = useParams();
@@ -21,15 +21,15 @@ const EditAnswer = () => {
     const onSubmit = async (e) => {
         e.preventDefault();
 
-        const answerData = e.target.body.value;
+        const answerData = { body: e.target.body.value };
 
-        const response = await fetch(`/questions/${params.id}/answers`, {
+        const response = await fetch(`/questions/${params.id}/answers/${props.id}`, {
             method: 'PATCH',
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${login.token}`
             },
-            body: JSON.stringify(answerData)
+            body: JSON.stringify({body: answerData, id: params.id, answer_id: props.id})
         })
         const json = await response.json();
 

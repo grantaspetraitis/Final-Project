@@ -4,60 +4,30 @@ import EditAnswer from "./EditAnswer";
 import CloseIcon from '@mui/icons-material/Close';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
-import { useParams } from "react-router-dom";
 
 const AnswerCard = (props) => {
 
     const { login } = useContext(AppContext);
     const [editForm, setEditForm] = useState(null);
-    const [answer, setAnswer] = useState(null);
-    const params = useParams();
-
-    const fetchLikes = async () => {
-        const response = await fetch(`/questions/${params.id}/answers`, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        const json = await response.json();
-        console.log(json)
-        setAnswer(json);
-        
-    }
 
     const handleClick = () => {
-        setEditForm(<EditAnswer />);
+        setEditForm(<EditAnswer id={props.answer_id} />);
     }
 
     const onClose = () => {
         setEditForm(null);
     }
 
-    const onClick = async (rating) => {
-        const response = await fetch(`/questions/${params.id}/rateanswer`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
-            },
-            body: JSON.stringify({ rating, id: props.id })
-        })
-        const json = await response.json();
-        setAnswer(answer => ({ ...answer, like_amount: json }))
-    }
-
-    useEffect(() => {
-        fetchLikes();
-    }, [])
 
     return (
         <div className="answer-card-container">
+            {props.edit_date && <p style={{ fontStyle: "italic" }}>edited at {props.edit_date.substring(0, 16).replace('T', ' ')}</p>}
             <span>{props.user}</span>
-            <h1>{props.body}</h1>
+            <h3>{props.body}</h3>
             <span>{props.post_date.substring(0, 16).replace('T', ' ')}</span>
-            <ThumbUpIcon onClick={() => onClick(1)} className="ml-30" />
-            <ThumbDownIcon onClick={() => onClick(-1)} className="ml-10" />
-            <span className="ml-10">{answer && answer.like_amount}</span>
+            <ThumbUpIcon onClick={() => props.onClick(1)} className="ml-30" style={{ cursor: "pointer" }} />
+            <ThumbDownIcon onClick={() => props.onClick(-1)} className="ml-10" style={{ cursor: "pointer" }} />
+            <span className="ml-10">{props.rating}</span>
 
             {
                 login ?

@@ -11,8 +11,6 @@ app.use(express.urlencoded({ extended: false }));
 
 initDB();
 
-
-
 const routes = require('./routes/user');
 app.use('/', routes);
 

@@ -7,7 +7,6 @@ const AddQuestion = () => {
 
     const navigate = useNavigate();
     const { login } = useContext(AppContext);
-
     const [formData, setFormData] = useState({
         title: '',
         body: ''
@@ -47,6 +46,7 @@ const AddQuestion = () => {
             toast.error(json.error)
         }
     }
+
 
     return (
         <form className="question-form" onSubmit={onSubmit}>
