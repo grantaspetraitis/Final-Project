@@ -5,11 +5,11 @@ const user = require('../controllers/user');
 
 router.post('/register', auth.createUser);
 router.get('/questions', user.getQuestions);
-router.post('/questions', user.addQuestion);
+router.post('/addquestion', user.addQuestion);
 router.get('/questions/:id', user.getQuestion);
 router.patch('/questions/:id', user.editQuestion);
 router.delete('/questions/:id', user.adminDeletePost);
-router.patch('/questions/:id', user.deleteQuestion);
+router.post('/questions/:id', user.deleteQuestion);
 router.get('/profile', user.getProfile);
 router.post('/login', auth.loginUser);
 router.post('/questions/:id/rate', user.rating);

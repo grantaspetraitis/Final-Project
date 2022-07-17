@@ -8,7 +8,6 @@ import AddAnswer from "../components/AddAnswer";
 import EditQuestion from "../components/EditQuestion";
 import CloseIcon from '@mui/icons-material/Close';
 import AnswerCard from "../components/AnswerCard";
-import loading from '../images/loading.gif'
 import toast from "react-hot-toast";
 
 const QuestionPage = () => {
@@ -39,25 +38,27 @@ const QuestionPage = () => {
         const json = await response.json();
         setAnswers(json);
     }
-    
 
     const onClick = async (rating) => {
         const response = await fetch(`/questions/${params.id}/rate`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
+                "Authorization": `Bearer ${login ? login.token : ''}`
             },
             body: JSON.stringify({ rating, id: params.id })
         })
         const json = await response.json();
         setQuestion(question => ({ ...question, like_amount: json }))
+        console.log(question)
+        if (!response.ok) {
+            toast.error(json.error)
+        }
     }
 
     const handleClick = e => {
-        setEditForm(<EditQuestion />)
+        setEditForm(<EditQuestion data={question} />)
     }
-
 
     const onClose = e => {
         setEditForm(null);
@@ -71,7 +72,7 @@ const QuestionPage = () => {
                 "Authorization": `Bearer ${login.token}`
             }
         })
-        if(response.ok){
+        if (response.ok) {
             toast.success('Successfully deleted post')
             navigate('/questions')
         }
@@ -79,14 +80,14 @@ const QuestionPage = () => {
 
     const onDelete = async (e) => {
         const response = await fetch(`/questions/${params.id}`, {
-            method: 'PATCH',
+            method: 'POST',
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${login.token}`
             },
             body: JSON.stringify({ id: params.id })
         })
-        if(response.ok){
+        if (response.ok) {
             toast.success('Successfully deleted your post');
             navigate('/questions')
         }
@@ -97,63 +98,65 @@ const QuestionPage = () => {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
+                "Authorization": `Bearer ${login ? login.token : ''}`
             },
             body: JSON.stringify({ rating, id })
         })
         const json = await response.json();
-        console.log(json)
-        setAnswers(answers => {
-            console.log(answers)
-            const likedAnswer = answers.find((answer) => answer.answer_id === id)
-            if(likedAnswer) likedAnswer.rating = json;   
-            return [...answers]
-        })
+        if (!response.ok) {
+            toast.error(json.error);
+        } else {
+            setAnswers(answers => {
+                const likedAnswer = answers.find((answer) => answer.answer_id === id)
+                if (likedAnswer) likedAnswer.rating = json;
+                return [...answers]
+            })
+        }
     }
 
     useEffect(() => {
-        if(question === null) fetchData();
-        if(answers === null) fetchAnswers();
-        
-    }, [handleClick])
+        fetchData();
+        fetchAnswers();
+
+    }, [])
 
     return (
         <div>
             <div className="single-question-container">
                 {
-                    question ? (
-                        <>
-                            {
-                                question[0].wasEdited === '1' && <span style={{ fontStyle: "italic" }}>edited at {question[0].edit_date.substring(0, 16).replace('T', ' ')}</span>
-                            }
-                            <p>{question[0].username}</p>
-                            <h1 className="ml-30">{question[0].post_title}</h1>
-                            <h3 className="ml-30">{question[0].post_body}</h3>
-                            <div style={{ display: "flex" }}>
-                                <ThumbUpIcon onClick={() => onClick(1)} className="ml-30" style={{ cursor: "pointer" }} />
-                                <ThumbDownIcon onClick={() => onClick(-1)} className="ml-10" style={{ cursor: "pointer" }} />
-                                <span className="ml-10">{question[0].like_amount}</span>
-                            </div>
-                            {login &&
-                                <>
-                                    {!editForm && <button className="btn" onClick={handleClick}>Edit question</button>}
-                                    {editForm &&
-                                        <>
-                                            <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} /></>}
-                                    {editForm}
-                                </>
-                            }
-                            { login &&
+                    question && question[0].isArchived === '1' ? <h1>Question deleted by user</h1> : question && question[0].isDeletedByAdmin === '1' ? <h1>Question deleted by admin</h1> :
+                        question ? (
                             <>
-                                {login.role === 'admin' && <button className="btn" style={{ marginLeft: 10 }} onClick={onAdminDelete}>Delete post</button>}
-                                <button onClick={onDelete}>Delete post</button>
-                            </>     
-                            }
-                            <span style={{ marginLeft: 20 }}>{question[0].post_date}</span>
-                        </>
-                    ) :
-                        question && question[0].isArchived === '1' ? <h1>Question deleted by user</h1> :
-                        <img style={{ width: "200px",  }} src={loading} alt="loading"></img>
+                                {
+                                    question[0].wasEdited === '1' && <span style={{ fontStyle: "italic" }}>edited at {question[0].edit_date.substring(0, 16).replace('T', ' ')}</span>
+                                }
+                                <p>{question[0].username}</p>
+                                <h1 className="ml-30">{question[0].post_title}</h1>
+                                <h3 className="ml-30">{question[0].post_body}</h3>
+                                <div style={{ display: "flex" }}>
+                                    <ThumbUpIcon onClick={() => onClick(1)} className="ml-30" style={{ cursor: "pointer" }} />
+                                    <ThumbDownIcon onClick={() => onClick(-1)} className="ml-10" style={{ cursor: "pointer" }} />
+                                    <span className="ml-10">{question[0].like_amount}</span>
+                                </div>
+                                {login &&
+                                    <>
+                                        {!editForm && <button className="btn" onClick={handleClick}>Edit question</button>}
+                                        {editForm &&
+                                            <>
+                                                <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} /></>}
+                                        {editForm}
+                                    </>
+                                }
+                                {login &&
+                                    <>
+                                        {login.role === 'admin' && <button className="btn" style={{ marginLeft: 10 }} onClick={onAdminDelete}>Delete post</button>}
+                                        <button className="btn" style={{ marginLeft: "20px" }} onClick={onDelete}>Delete post</button>
+                                    </>
+                                }
+                                <span style={{ marginLeft: 20 }}>{question[0].post_date.substring(0, 16)}</span>
+                            </>
+                        ) :
+                            <div className="spinner"></div>
                 }
             </div>
             {

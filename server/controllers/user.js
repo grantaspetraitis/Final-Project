@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db').getPool();
 
 exports.getQuestions = async (req, res) => {
-    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, post_date FROM posts JOIN users ON user_id = poster_id', (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, post_date, posts.isArchived, posts.isDeletedByAdmin FROM posts JOIN users ON user_id = poster_id', (err, result) => {
         if (err) throw err;
         const ids = result.map(res => res.post_id);
         if (result.length > 0) {
@@ -75,7 +75,7 @@ exports.getProfile = async (req, res) => {
     }
     const ID = decoded.user.user_id;
 
-    pool.query('SELECT posts.post_id, users.username, posts.post_title, posts.post_body FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_id, users.username, posts.post_title, posts.post_body, posts.isArchived, posts.isDeletedByAdmin FROM posts JOIN users ON user_id = poster_id AND user_id = ?', [ID], (err, result) => {
         if (err) throw err;
         res.status(200).send(result);
 
@@ -86,15 +86,15 @@ exports.getQuestion = async (req, res) => {
 
     const ID = req.params.id;
 
-    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.isArchived, posts.edit_date FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.isArchived, posts.edit_date, posts.isDeletedByAdmin FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
         if (err) throw err;
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if (err) throw err;
             const post = result.map(post => {
-            const rating = result2[0].rating;
-            const time = post.post_date.toLocaleString();
-            const editTime = post.edit_date.toLocaleString();
-            return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
+                const rating = result2[0].rating;
+                const time = post.post_date.toLocaleString();
+                const editTime = post.edit_date.toLocaleString();
+                return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
             })
             res.status(200).send(post);
         })
@@ -108,24 +108,28 @@ exports.rating = async (req, res) => {
 
     try {
         token = req.headers.authorization.split(' ')[1];
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = token && jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded) {
+            const user_id = decoded.user.user_id;
+            pool.query('UPDATE likes SET rating = ? WHERE post_id = ? AND user_id = ?', [rating, post_id, user_id], (err, result) => {
+                if (err) throw err;
+                if (result.affectedRows < 1) {
+                    pool.query('INSERT INTO likes SET rating = ?, post_id = ?, user_id = ?', [rating, post_id, user_id], (err, result) => {
+                        if (err) throw err;
+                    })
+                }
+            })
+            pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [post_id], (err, result) => {
+                if (err) throw err;
+                res.send(result[0].rating);
+            })
+        } else {
+            return res.status(401).send({ error: 'You must be logged in to rate' })
+        }
     } catch (err) {
         console.log(err)
-        return res.status(401).send({ error: 'You must be logged in to rate' })
     }
-    const user_id = decoded.user.user_id;
-    pool.query('UPDATE likes SET rating = ? WHERE post_id = ? AND user_id = ?', [rating, post_id, user_id], (err, result) => {
-        if (err) throw err;
-        if (result.affectedRows < 1) {
-            pool.query('INSERT INTO likes SET rating = ?, post_id = ?, user_id = ?', [rating, post_id, user_id], (err, result) => {
-                if (err) throw err;
-            })
-        }
-    })
-    pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [post_id], (err, result) => {
-        if (err) throw err;
-        res.send(result[0].rating);
-    })
+
 }
 
 exports.addAnswer = async (req, res) => {
@@ -152,9 +156,9 @@ exports.getAnswers = async (req, res) => {
     const ID = req.params.id;
     pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date, answers.wasEdited FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if (err) throw err;
-        if(result.length > 0){
-        const answerIDs = result.map(res => res.answer_id);
-        const answerID = result[0].answer_id;
+        if (result.length > 0) {
+            const answerIDs = result.map(res => res.answer_id);
+            const answerID = result[0].answer_id;
 
             pool.query('SELECT SUM (rating) AS rating, answer_id FROM answer_likes WHERE answer_id IN (?) GROUP BY answer_id', [answerIDs], (err, result2) => {
                 if (err) throw err;
@@ -204,9 +208,9 @@ exports.editAnswer = async (req, res) => {
 exports.adminDeletePost = async (req, res) => {
     const POST_ID = req.params.id;
 
-    pool.query('DELETE FROM posts WHERE post_id = ?', [POST_ID], (err, result) => {
-        if (err) throw err;
-        res.status(200).send(result);
+    pool.query('UPDATE posts SET isDeletedByAdmin = ? WHERE post_id = ?', [true, POST_ID], (err, result) => {
+        if(err) throw err;
+        res.status(200).send(result)
     })
 }
 
@@ -216,31 +220,35 @@ exports.answerRating = async (req, res) => {
 
     try {
         token = req.headers.authorization.split(' ')[1];
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = token && jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded) {
+            const user_id = decoded.user.user_id;
+            const ANSWER_ID = req.body.id;
+
+            pool.query('UPDATE answer_likes SET rating = ? WHERE answer_id = ? AND user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
+                if (err) throw err;
+                if (result.affectedRows < 1) {
+                    pool.query('INSERT INTO answer_likes SET rating = ?, answer_id = ?, user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
+                        if (err) throw err;
+                    })
+                }
+            })
+            pool.query('SELECT SUM (rating) AS rating FROM answer_likes WHERE answer_id = ?', [ANSWER_ID], (err, result) => {
+                if (err) throw err;
+                res.send(result[0].rating);
+            })
+        } else {
+            res.status(401).send({ error: 'You must be logged in to rate' })
+        }
     } catch (err) {
         console.log(err)
-        return res.status(401).send({ error: 'You must be logged in to rate' })
     }
-    const user_id = decoded.user.user_id;
-    const ANSWER_ID = req.body.id;
 
-    pool.query('UPDATE answer_likes SET rating = ? WHERE answer_id = ? AND user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
-        if (err) throw err;
-        if (result.affectedRows < 1) {
-            pool.query('INSERT INTO answer_likes SET rating = ?, answer_id = ?, user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
-                if (err) throw err;
-            })
-        }
-    })
-    pool.query('SELECT SUM (rating) AS rating FROM answer_likes WHERE answer_id = ?', [ANSWER_ID], (err, result) => {
-        if (err) throw err;
-        res.send(result[0].rating);
-    })
+
 }
 
 exports.deleteQuestion = async (req, res) => {
     const POST_ID = req.params.id;
-    console.log(req)
     pool.query('UPDATE posts SET isArchived = ? WHERE post_id = ?', [true, POST_ID], (err, result) => {
         if (err) throw err;
         res.status(200).send(result);

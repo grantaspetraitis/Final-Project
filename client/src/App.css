@@ -145,3 +145,74 @@
   margin-right: 20px;
   padding: 20px;
 }
+
+/* Spinner */
+
+@keyframes text-color {
+  0% {
+    color: rgba(106, 106, 106, 0.526)
+  }
+
+  50% {
+    color: rgba(106, 106, 106, 0.821)
+  }
+
+  100% {
+    color: rgba(106, 106, 106, 0.526)
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  overflow: hidden;
+  position: relative;
+  animation: text-color 2s ease-in-out alternate;
+}
+
+.spinner::before, .spinner::after {
+  content: '';
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  border: 15px solid transparent;
+  mix-blend-mode: overlay;
+  animation: rotate var(--duration) var(--timing) infinite;
+  pointer-events: none;
+}
+
+.spinner::before {
+  border-left-color: red;
+  --duration: 2s;
+  --timing: ease-in;
+}
+
+.spinner::after {
+  border-right-color:rgb(172, 0, 0);
+  --duration: 2.5s;
+  --timing: ease-out;
+}
+
+/* Select */
+
+.select {
+  border-style: hidden;
+}
+
+.select:focus {
+  outline: none;
+}

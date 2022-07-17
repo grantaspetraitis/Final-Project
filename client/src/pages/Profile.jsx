@@ -26,6 +26,7 @@ const Profile = () => {
         fetchData()
     }, [])
 
+
     return (
         <>
             {login ? (
@@ -34,7 +35,7 @@ const Profile = () => {
                     <div className="profile-question-container">
                         <h3 style={{ padding: "30px" }}>Your threads:</h3>
                         {
-                            data ? data.map((data, i) => <Card key={i} data={data}></Card>) : <p>Loading</p>
+                            data ? data.map((data, i) => <Card key={i} data={data}></Card>) : <div className="spinner"></div>
                         }
                     </div>
                 </>

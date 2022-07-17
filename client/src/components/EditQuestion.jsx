@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../Context";
 
-const EditQuestion = () => {
+const EditQuestion = (props) => {
 
     const params = useParams();
     const navigate = useNavigate();
@@ -53,10 +53,10 @@ const EditQuestion = () => {
     return (
         <form className="edit-question-form" onSubmit={onSubmit}>
             <div className="form-element">
-                <input required className="input" type="text" value={title} placeholder="Question heading" onChange={onChange} name="title" />
+                <input required className="input" type="text" defaultValue={props.data[0].post_title} placeholder="Question heading" onChange={onChange} name="title" />
             </div>
             <div className="form-element">
-                <textarea cols="40" rows="10" required className="input" value={body} placeholder="Question" onChange={onChange} name="body" />
+                <textarea cols="40" rows="10" required className="input" defaultValue={props.data[0].post_body} placeholder="Question" onChange={onChange} name="body" />
             </div>
             <button className="btn">Post</button>
         </form>

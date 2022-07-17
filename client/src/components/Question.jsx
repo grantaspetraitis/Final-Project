@@ -6,6 +6,9 @@ const Question = (props) => {
 
     return (
         <Link style={{ textDecoration: "none" }} to={`/questions/${props.data.post_id}`}>
+        {
+            props.data.isArchived === '1' ? null :
+            props.data.isDeletedByAdmin === 'false' &&
             <div className="question-container">
                 <h1 style={{ color: "grey" }}>{props.data.post_title}</h1>
                 <p style={{ color: "black" }}>{shortenedBody}{props.data.post_body.length > 30 ? ' ...' : ''}</p>
@@ -13,6 +16,7 @@ const Question = (props) => {
                 <span style={{ position: "relative", left: "80%" }}>By {props.data.username}</span>
                 <span>{props.data.post_date.replace('T', ' ').substring(0, 16)}</span>
             </div>
+        }      
         </Link>
     );
 }

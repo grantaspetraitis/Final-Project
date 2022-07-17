@@ -44,7 +44,7 @@ const EditAnswer = (props) => {
     return (
         <form className="edit-answer-form" onSubmit={onSubmit}>
             <div className="form-element">
-                <textarea cols="40" rows="10" required className="input" value={body} placeholder="Edit answer" onChange={onChange} name="body" />
+                <textarea cols="40" rows="10" required className="input" defaultValue={props.body} onChange={onChange} name="body"></textarea>
             </div>
             <button className="btn">Post</button>
         </form>

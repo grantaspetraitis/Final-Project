@@ -29,7 +29,7 @@ const AddQuestion = () => {
             body: e.target.body.value
         }
 
-        const response = await fetch('/questions', {
+        const response = await fetch('/addquestion', {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",

@@ -33,6 +33,8 @@ const AddAnswer = (props) => {
             body: JSON.stringify({ body: e.target.body.value })
         })
 
+        setFormData({ body: '' })
+
         const json = await response.json();
         if (response.ok) {
             toast.success('Added answer successfully')

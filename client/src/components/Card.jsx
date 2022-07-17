@@ -5,9 +5,12 @@ const Card = (props) => {
     return (
         <Link to={`/questions/${props.data.post_id}`}>
             <div className="card-container">
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{}}>
                     {props.data.post_title}
-                </div>
+                    {
+                        props.data.isArchived === '1' ? <span style={{ fontStyle: "italic" }}> (Archived)</span> : props.data.isDeletedByAdmin === '1' && <span style={{ fontStyle: "italic" }}> (deleted by admin)</span>
+                    }
+                </span>
             </div>
         </Link>
     );

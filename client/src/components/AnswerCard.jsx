@@ -11,7 +11,7 @@ const AnswerCard = (props) => {
     const [editForm, setEditForm] = useState(null);
 
     const handleClick = () => {
-        setEditForm(<EditAnswer id={props.answer_id} />);
+        setEditForm(<EditAnswer id={props.answer_id} body={props.body} />);
     }
 
     const onClose = () => {
