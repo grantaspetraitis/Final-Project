@@ -39,8 +39,7 @@ const QuestionPage = () => {
         const json = await response.json();
         setAnswers(json);
     }
-
-    console.log(answers)
+    
 
     const onClick = async (rating) => {
         const response = await fetch(`/questions/${params.id}/rate`, {
@@ -93,17 +92,23 @@ const QuestionPage = () => {
         }
     }
 
-    const onAnswerLikeClick = async (rating) => {
+    const onAnswerLikeClick = async (rating, id) => {
         const response = await fetch(`/questions/${params.id}/rateanswer`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${login.token}`
             },
-            body: JSON.stringify({ rating, id: params.id })
+            body: JSON.stringify({ rating, id })
         })
         const json = await response.json();
-        setAnswers(answer => ({ ...answer, like_amount: json }))
+        console.log(json)
+        setAnswers(answers => {
+            console.log(answers)
+            const likedAnswer = answers.find((answer) => answer.answer_id === id)
+            if(likedAnswer) likedAnswer.rating = json;   
+            return [...answers]
+        })
     }
 
     useEffect(() => {
@@ -111,6 +116,7 @@ const QuestionPage = () => {
         if(answers === null) fetchAnswers();
         
     }, [handleClick])
+
 
     return (
         <div>
@@ -144,7 +150,7 @@ const QuestionPage = () => {
                                 <button onClick={onDelete}>Delete post</button>
                             </>     
                             }
-                            <span style={{ marginLeft: 20 }}>{question.post_date.substring(0, 16).replace('T', ' ')}</span>
+                            <span style={{ marginLeft: 20 }}>{question.post_date}</span>
                         </>
                     ) :
                         question && question.isArchived === '1' ? <h1>Question deleted by user</h1> :
@@ -152,7 +158,7 @@ const QuestionPage = () => {
                 }
             </div>
             {
-                answers ? answers.map((answer, i) => <AnswerCard onClick={onAnswerLikeClick} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} />) : <h1>Loading answers</h1>
+                answers ? answers.map((answer, i) => <AnswerCard onClick={(rating) => onAnswerLikeClick(rating, answer.answer_id)} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} />) : <h1>Loading answers</h1>
             }
             <AddAnswer post_id={params.id} />
 

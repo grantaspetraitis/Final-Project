@@ -12,8 +12,9 @@ exports.getQuestions = async (req, res) => {
                 if (err) throw err;
                 const posts = result.map(post => {
                     const rating = result2.find(res => res.post_id === post.post_id);
+                    const time = post.post_date.toLocaleString();
                     const like_amount = rating ? rating.rating : 0;
-                    return { ...post, like_amount: like_amount }
+                    return { ...post, like_amount: like_amount, post_date: time }
                 })
                 res.send(posts)
             })
@@ -89,9 +90,14 @@ exports.getQuestion = async (req, res) => {
         if (err) throw err;
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if (err) throw err;
+            const post = result.map(post => {
             const rating = result2[0].rating;
-            const post = { ...result[0], like_amount: rating }
+            const time = post.post_date.toLocaleString();
+            const editTime = post.edit_date.toLocaleString();
+            return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
+            })
             res.status(200).send(post);
+            console.log(post)
         })
     })
 }
@@ -154,8 +160,10 @@ exports.getAnswers = async (req, res) => {
                 if (err) throw err;
                 const posts = result.map(post => {
                     const rating = result2.find(res => res.answer_id === post.answer_id);
+                    const time = post.post_date.toLocaleString();
+                    const editTime = post.edit_date.toLocaleString();
                     const like_amount = rating ? rating.rating : 0;
-                    return { ...post, rating: like_amount, id: answerID }
+                    return { ...post, rating: like_amount, id: answerID, post_date: time, edit_date: editTime }
 
                 })
                 res.send(posts)
@@ -187,7 +195,7 @@ exports.editAnswer = async (req, res) => {
     const ANSWER_ID = req.body.answer_id;
 
     pool.query('SELECT answer_id FROM answers WHERE post_id = ?', [POST_ID], (err, result) => {
-        
+
         pool.query('UPDATE answers SET answer_body = ?, edit_date = ? WHERE answer_id = ? AND answerer_id = ?', [body, editDate, ANSWER_ID, USER_ID], (err, result2) => {
             if (err) throw err;
             res.status(200).send({ id: ANSWER_ID });
@@ -216,24 +224,19 @@ exports.answerRating = async (req, res) => {
         return res.status(401).send({ error: 'You must be logged in to rate' })
     }
     const user_id = decoded.user.user_id;
+    const ANSWER_ID = req.body.id;
 
-    pool.query('SELECT answer_id FROM answers', (err, result) => {
+    pool.query('UPDATE answer_likes SET rating = ? WHERE answer_id = ? AND user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
         if (err) throw err;
-        const answer_id = result[0].answer_id;
-
-        pool.query('UPDATE answer_likes SET rating = ? WHERE answer_id = ? AND user_id = ?', [rating, answer_id, user_id], (err, result) => {
-            if (err) throw err;
-            if (result.affectedRows < 1) {
-                pool.query('INSERT INTO answer_likes SET rating = ?, answer_id = ?, user_id = ?', [rating, answer_id, user_id], (err, result) => {
-                    if (err) throw err;
-                })
-            }
-        })
-        pool.query('SELECT SUM (rating) AS rating FROM answer_likes WHERE answer_id = ?', [answer_id], (err, result) => {
-            if (err) throw err;
-            res.send(result[0].rating);
-        })
-
+        if (result.affectedRows < 1) {
+            pool.query('INSERT INTO answer_likes SET rating = ?, answer_id = ?, user_id = ?', [rating, ANSWER_ID, user_id], (err, result) => {
+                if (err) throw err;
+            })
+        }
+    })
+    pool.query('SELECT SUM (rating) AS rating FROM answer_likes WHERE answer_id = ?', [ANSWER_ID], (err, result) => {
+        if (err) throw err;
+        res.send(result[0].rating);
     })
 }
 
