@@ -21,7 +21,7 @@ const AnswerCard = (props) => {
 
     return (
         <div className="answer-card-container">
-            {props.edit_date && <p style={{ fontStyle: "italic" }}>edited at {props.edit_date.substring(0, 16).replace('T', ' ')}</p>}
+            {props.wasEdited === '1' && <p style={{ fontStyle: "italic" }}>edited at {props.edit_date.substring(0, 16).replace('T', ' ')}</p>}
             <span>{props.user}</span>
             <h3>{props.body}</h3>
             <span>{props.post_date.substring(0, 16).replace('T', ' ')}</span>

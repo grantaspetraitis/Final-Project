@@ -97,7 +97,6 @@ exports.getQuestion = async (req, res) => {
             return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
             })
             res.status(200).send(post);
-            console.log(post)
         })
     })
 }
@@ -151,11 +150,12 @@ exports.addAnswer = async (req, res) => {
 
 exports.getAnswers = async (req, res) => {
     const ID = req.params.id;
-    pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
+    pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date, answers.wasEdited FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if (err) throw err;
+        if(result.length > 0){
         const answerIDs = result.map(res => res.answer_id);
         const answerID = result[0].answer_id;
-        if (answerIDs.length > 0) {
+
             pool.query('SELECT SUM (rating) AS rating, answer_id FROM answer_likes WHERE answer_id IN (?) GROUP BY answer_id', [answerIDs], (err, result2) => {
                 if (err) throw err;
                 const posts = result.map(post => {
@@ -168,8 +168,6 @@ exports.getAnswers = async (req, res) => {
                 })
                 res.send(posts)
             })
-        } else {
-            res.send(result);
         }
     })
     // const time = result.map(result => result.post_date.toLocaleString());
@@ -196,7 +194,7 @@ exports.editAnswer = async (req, res) => {
 
     pool.query('SELECT answer_id FROM answers WHERE post_id = ?', [POST_ID], (err, result) => {
 
-        pool.query('UPDATE answers SET answer_body = ?, edit_date = ? WHERE answer_id = ? AND answerer_id = ?', [body, editDate, ANSWER_ID, USER_ID], (err, result2) => {
+        pool.query('UPDATE answers SET answer_body = ?, edit_date = ?, wasEdited = ? WHERE answer_id = ? AND answerer_id = ?', [body, editDate, true, ANSWER_ID, USER_ID], (err, result2) => {
             if (err) throw err;
             res.status(200).send({ id: ANSWER_ID });
         })

@@ -117,7 +117,6 @@ const QuestionPage = () => {
         
     }, [handleClick])
 
-
     return (
         <div>
             <div className="single-question-container">
@@ -125,15 +124,15 @@ const QuestionPage = () => {
                     question ? (
                         <>
                             {
-                                question.wasEdited === '1' && <span style={{ fontStyle: "italic" }}>edited at {question.edit_date.substring(0, 16).replace('T', ' ')}</span>
+                                question[0].wasEdited === '1' && <span style={{ fontStyle: "italic" }}>edited at {question[0].edit_date.substring(0, 16).replace('T', ' ')}</span>
                             }
-                            <p>{question.username}</p>
-                            <h1 className="ml-30">{question.post_title}</h1>
-                            <h3 className="ml-30">{question.post_body}</h3>
+                            <p>{question[0].username}</p>
+                            <h1 className="ml-30">{question[0].post_title}</h1>
+                            <h3 className="ml-30">{question[0].post_body}</h3>
                             <div style={{ display: "flex" }}>
                                 <ThumbUpIcon onClick={() => onClick(1)} className="ml-30" style={{ cursor: "pointer" }} />
                                 <ThumbDownIcon onClick={() => onClick(-1)} className="ml-10" style={{ cursor: "pointer" }} />
-                                <span className="ml-10">{question.like_amount}</span>
+                                <span className="ml-10">{question[0].like_amount}</span>
                             </div>
                             {login &&
                                 <>
@@ -150,15 +149,15 @@ const QuestionPage = () => {
                                 <button onClick={onDelete}>Delete post</button>
                             </>     
                             }
-                            <span style={{ marginLeft: 20 }}>{question.post_date}</span>
+                            <span style={{ marginLeft: 20 }}>{question[0].post_date}</span>
                         </>
                     ) :
-                        question && question.isArchived === '1' ? <h1>Question deleted by user</h1> :
+                        question && question[0].isArchived === '1' ? <h1>Question deleted by user</h1> :
                         <img style={{ width: "200px",  }} src={loading} alt="loading"></img>
                 }
             </div>
             {
-                answers ? answers.map((answer, i) => <AnswerCard onClick={(rating) => onAnswerLikeClick(rating, answer.answer_id)} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} />) : <h1>Loading answers</h1>
+                answers ? answers.map((answer, i) => <AnswerCard onClick={(rating) => onAnswerLikeClick(rating, answer.answer_id)} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} wasEdited={answer.wasEdited} />) : <h2 style={{ marginLeft: "100px" }}>No answers yet</h2>
             }
             <AddAnswer post_id={params.id} />
 
