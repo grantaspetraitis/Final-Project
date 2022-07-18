@@ -58,7 +58,7 @@
 .navbar-container {
   display: flex;
   position: fixed;
-  background-color: rgba(255, 255, 255, 0.947);
+  background-color: rgb(255, 255, 255);
   width: 100%;
   top: 0;
   z-index: 99;
@@ -96,12 +96,17 @@
 
 .question-container {
   position: relative;
-  border: 1px solid rgb(214, 214, 214);
+  background-color: rgba(255, 255, 255, 0.929);
   margin-left: 20px;
   margin-right: 20px;
   padding: 20px;
   margin-bottom: 10px;
   width: 80%;
+}
+
+.question-container:hover {
+  background-color: rgb(255, 255, 255);
+  transform: scale(101%)
 }
 
 .single-question-container {
@@ -212,6 +217,7 @@
 
 .select {
   border-style: hidden;
+  background-color:rgba(214, 214, 214, 0)
 }
 
 .select:focus {
@@ -223,7 +229,7 @@
 .home-heading {
   margin-top: 200px;
   padding: 10px;
-  color: rgb(108, 108, 108);
+  color: rgb(0, 0, 0);
 }
 
 .home-heading::after {
@@ -237,4 +243,10 @@
   width: 80%;
   display: flex;
   flex-direction: column;
+}
+
+.home-container {
+  background-image: url('./images/the_fear_that_synthesizers_would_ruin_music_1050x700.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
 }

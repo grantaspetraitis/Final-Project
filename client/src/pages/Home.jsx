@@ -38,16 +38,18 @@ const Home = () => {
 
 
     return (
-        <>
+        <div className="home-container">
             <h1 className="home-heading">See what the community is talking about</h1>
-            <form style={{ marginTop: 50, marginLeft: 50, marginBottom: 50 }} onSubmit={onSubmit}>
-                <label>Sort by date added: </label>
-                <select className="select" onChange={onChange} value={select}>
-                    <option value="new-first">Newest first</option>
-                    <option value="old-first">Oldest first</option>
-                </select>
-                <button className="btn">Sort</button>
-            </form>
+            <div>
+                <form style={{ marginTop: 50, marginLeft: 50, marginBottom: 50 }} onSubmit={onSubmit}>
+                    <label>Sort by date added: </label>
+                    <select className="select" onChange={onChange} value={select}>
+                        <option value="new-first">Newest first</option>
+                        <option value="old-first">Oldest first</option>
+                    </select>
+                    <button className="btn" style={{ marginLeft: 20 }}>Sort</button>
+                </form>
+            </div>
             <div className="container">
                 {
                     questions ? (
@@ -57,7 +59,7 @@ const Home = () => {
                     )
                 }
             </div>
-        </>
+        </div>
     );
 }
 
