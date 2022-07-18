@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { post } = require('../routes/user');
 
 
 const pool = require('../db').getPool();
@@ -28,18 +29,23 @@ exports.addQuestion = async (req, res) => {
 
     try {
         token = req.headers.authorization.split(' ')[1];
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = token && jwt.verify(token, process.env.JWT_SECRET);
+        const createDate = new Date();
+        const { title, body } = req.body;
+        if (decoded) {
+            const ID = decoded.user.user_id;
+            pool.query('INSERT INTO posts SET poster_id = ?, post_title = ?, post_body = ?, post_date = ?', [ID, title, body, createDate], (err, result) => {
+                if (err) throw err;
+                res.status(200).send({ id: result.insertId });
+            })
+        } else {
+            res.status(401).send({ error: 'You must be logged in to post a question' })
+        }
     } catch (err) {
         console.log(err)
         return res.status(401).send({ error: 'You must be logged in to post a question' })
     }
-    const ID = decoded.user.user_id;
-    const createDate = new Date();
-    const { title, body } = req.body;
-    pool.query('INSERT INTO posts SET poster_id = ?, post_title = ?, post_body = ?, post_date = ?', [ID, title, body, createDate], (err, result) => {
-        if (err) throw err;
-        res.status(200).send({ id: result.insertId });
-    })
+
 }
 
 exports.editQuestion = async (req, res) => {
@@ -85,9 +91,20 @@ exports.getProfile = async (req, res) => {
 exports.getQuestion = async (req, res) => {
 
     const ID = req.params.id;
+    let token, decoded;
+    try {
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to view your profile' })
+    }
 
-    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.isArchived, posts.edit_date, posts.isDeletedByAdmin FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
+    const USER_ID = decoded.user.user_id
+
+    pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.isArchived, posts.edit_date, posts.isDeletedByAdmin, posts.poster_id FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
         if (err) throw err;
+        const POSTER_ID = result[0].poster_id;
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if (err) throw err;
             const post = result.map(post => {
@@ -96,7 +113,11 @@ exports.getQuestion = async (req, res) => {
                 const editTime = post.edit_date.toLocaleString();
                 return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
             })
-            res.status(200).send(post);
+            if (POSTER_ID === USER_ID) {
+                res.status(200).send({ ...post, isEditable: true });
+            } else {
+                res.status(200).send(post);
+            }
         })
     })
 }
@@ -154,7 +175,18 @@ exports.addAnswer = async (req, res) => {
 
 exports.getAnswers = async (req, res) => {
     const ID = req.params.id;
-    pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date, answers.wasEdited FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
+
+    let token, decoded;
+    try {
+        token = req.headers.authorization.split(' ')[1];
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+        console.log(err)
+        return res.status(401).send({ error: 'You must be logged in to view your profile' })
+    }
+    const USER_ID = decoded.user.user_id;
+
+    pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date, answers.wasEdited, answers.answerer_id, answers.isArchived FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if (err) throw err;
         if (result.length > 0) {
             const answerIDs = result.map(res => res.answer_id);
@@ -167,10 +199,13 @@ exports.getAnswers = async (req, res) => {
                     const time = post.post_date.toLocaleString();
                     const editTime = post.edit_date.toLocaleString();
                     const like_amount = rating ? rating.rating : 0;
-                    return { ...post, rating: like_amount, id: answerID, post_date: time, edit_date: editTime }
-
+                    return { ...post, rating: like_amount, id: answerID, post_date: time, edit_date: editTime, isEditable: false }
                 })
-                res.send(posts)
+                posts.map(answer => {
+                    const matchedAnswer = answer.answerer_id === USER_ID;
+                    return { ...answer, isEditable: matchedAnswer ? answer.isEditable = true : answer.isEditable = false}
+                })
+                res.status(200).send(posts)
             })
         }
     })
@@ -209,7 +244,7 @@ exports.adminDeletePost = async (req, res) => {
     const POST_ID = req.params.id;
 
     pool.query('UPDATE posts SET isDeletedByAdmin = ? WHERE post_id = ?', [true, POST_ID], (err, result) => {
-        if(err) throw err;
+        if (err) throw err;
         res.status(200).send(result)
     })
 }
@@ -243,14 +278,21 @@ exports.answerRating = async (req, res) => {
     } catch (err) {
         console.log(err)
     }
-
-
 }
 
 exports.deleteQuestion = async (req, res) => {
     const POST_ID = req.params.id;
     pool.query('UPDATE posts SET isArchived = ? WHERE post_id = ?', [true, POST_ID], (err, result) => {
         if (err) throw err;
+        res.status(200).send(result);
+    })
+}
+
+exports.deleteAnswer = async (req, res) => {
+    const ANSWER_ID = req.body.id;
+
+    pool.query('UPDATE answers SET isArchived = ? WHERE answer_id = ?', [true, ANSWER_ID], (err, result) => {
+        if(err) throw err;
         res.status(200).send(result);
     })
 }

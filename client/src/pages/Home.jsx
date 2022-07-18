@@ -39,7 +39,7 @@ const Home = () => {
 
     return (
         <>
-            <h1 style={{ marginTop: 200, padding: 10 }}>See what the community is talking about</h1>
+            <h1 className="home-heading">See what the community is talking about</h1>
             <form style={{ marginTop: 50, marginLeft: 50, marginBottom: 50 }} onSubmit={onSubmit}>
                 <label>Sort by date added: </label>
                 <select className="select" onChange={onChange} value={select}>

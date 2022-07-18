@@ -33,7 +33,7 @@ const AddQuestion = () => {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
+                "Authorization": `Bearer ${login ? login.token : ''}`
             },
             body: JSON.stringify(questionData)
         })

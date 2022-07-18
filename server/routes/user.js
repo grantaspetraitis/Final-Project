@@ -17,5 +17,6 @@ router.post('/questions/:id/answers', user.addAnswer);
 router.get('/questions/:id/answers', user.getAnswers);
 router.patch('/questions/:id/answers/:id', user.editAnswer);
 router.post('/questions/:id/rateanswer', user.answerRating);
+router.post('/questions/:id/answers/:id', user.deleteAnswer);
 
 module.exports = router;

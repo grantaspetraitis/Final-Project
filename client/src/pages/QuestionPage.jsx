@@ -22,7 +22,8 @@ const QuestionPage = () => {
     const fetchData = async () => {
         const response = await fetch(`/questions/${params.id}`, {
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${login.token}`
             }
         });
         const json = await response.json();
@@ -32,11 +33,12 @@ const QuestionPage = () => {
     const fetchAnswers = async () => {
         const response = await fetch(`/questions/${params.id}/answers`, {
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${login.token}`
             }
         });
         const json = await response.json();
-        setAnswers(json);
+        setAnswers([json]);
     }
 
     const onClick = async (rating) => {
@@ -120,6 +122,8 @@ const QuestionPage = () => {
 
     }, [])
 
+    console.log(answers)
+
     return (
         <div>
             <div className="single-question-container">
@@ -138,7 +142,7 @@ const QuestionPage = () => {
                                     <ThumbDownIcon onClick={() => onClick(-1)} className="ml-10" style={{ cursor: "pointer" }} />
                                     <span className="ml-10">{question[0].like_amount}</span>
                                 </div>
-                                {login &&
+                                {question.isEditable &&
                                     <>
                                         {!editForm && <button className="btn" onClick={handleClick}>Edit question</button>}
                                         {editForm &&
@@ -147,12 +151,12 @@ const QuestionPage = () => {
                                         {editForm}
                                     </>
                                 }
-                                {login &&
+                                {question.isEditable &&
                                     <>
-                                        {login.role === 'admin' && <button className="btn" style={{ marginLeft: 10 }} onClick={onAdminDelete}>Delete post</button>}
                                         <button className="btn" style={{ marginLeft: "20px" }} onClick={onDelete}>Delete post</button>
                                     </>
                                 }
+                                {login && login.role === 'admin' && <button className="btn" style={{ marginLeft: 10 }} onClick={onAdminDelete}>Delete post as admin</button>}
                                 <span style={{ marginLeft: 20 }}>{question[0].post_date.substring(0, 16)}</span>
                             </>
                         ) :
@@ -160,7 +164,7 @@ const QuestionPage = () => {
                 }
             </div>
             {
-                answers ? answers.map((answer, i) => <AnswerCard onClick={(rating) => onAnswerLikeClick(rating, answer.answer_id)} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} wasEdited={answer.wasEdited} />) : <h2 style={{ marginLeft: "100px" }}>No answers yet</h2>
+                answers ? answers[0].map((answer, i) => <AnswerCard onClick={(rating) => onAnswerLikeClick(rating, answer.answer_id)} key={i} edit_date={answer.edit_date} answer_id={answer.answer_id} body={answer.answer_body} post_date={answer.post_date} user={answer.username} id={answer.answer_id} rating={answer.rating} wasEdited={answer.wasEdited} isEditable={answer.isEditable} isArchived={answer.isArchived} />) : <h2 style={{ marginLeft: "100px" }}>No answers yet</h2>
             }
             <AddAnswer post_id={params.id} />
 

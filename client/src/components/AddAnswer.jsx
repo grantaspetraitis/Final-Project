@@ -38,7 +38,7 @@ const AddAnswer = (props) => {
         const json = await response.json();
         if (response.ok) {
             toast.success('Added answer successfully')
-            navigate(`/questions/${json.id}`)
+            navigate(0)
             setAnswer(json)
         } else {
             toast.error(json.error);
