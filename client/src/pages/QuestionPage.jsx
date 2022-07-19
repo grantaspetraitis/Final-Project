@@ -50,9 +50,9 @@ const QuestionPage = () => {
             },
             body: JSON.stringify({ rating, id: params.id })
         })
+       
         const json = await response.json();
         setQuestion(question => ({ ...question, like_amount: json }))
-        console.log(question)
         if (!response.ok) {
             toast.error(json.error)
         }
@@ -122,7 +122,6 @@ const QuestionPage = () => {
 
     }, [])
 
-    console.log(answers)
 
     return (
         <div>

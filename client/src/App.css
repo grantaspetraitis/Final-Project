@@ -250,3 +250,7 @@
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+.liked {
+  filter: invert(12%) sepia(94%) saturate(7483%) hue-rotate(3deg) brightness(104%) contrast(111%);
+}

@@ -44,7 +44,7 @@ const EditQuestion = (props) => {
 
         if (response.ok) {
             toast.success('Edited question successfully');
-            navigate(`/questions/${json.id}`)
+            navigate(0)
         } else {
             toast.error(json.error)
         }

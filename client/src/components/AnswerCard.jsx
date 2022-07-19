@@ -37,6 +37,7 @@ const AnswerCard = (props) => {
         }
     }
 
+
     return (
 
         <div className="answer-card-container">
@@ -52,12 +53,12 @@ const AnswerCard = (props) => {
                 </>
             }
             {
-                props.isEditable && props.isArchived === false ?
+                props.isArchived === 'false' && props.isEditable ?
                     <div style={{ display: "flex" }}>
                         {!editForm && <div><button className="btn" onClick={handleClick}>Edit answer</button></div>}
                         {editForm && <div><CloseIcon onClick={onClose} style={{ cursor: "pointer" }} /></div>}
                         {editForm}
-                        <button className="btn" style={{ marginLeft: 20 }} onClick={onDelete}>Delete answer</button>
+                        <div><button className="btn" style={{ marginLeft: 20 }} onClick={onDelete}>Delete answer</button></div>
                     </div>
 
                     :
