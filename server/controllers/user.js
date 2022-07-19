@@ -94,33 +94,44 @@ exports.getQuestion = async (req, res) => {
     let token, decoded;
     try {
         token = req.headers.authorization.split(' ')[1];
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = token && jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
         console.log(err)
         return res.status(401).send({ error: 'You must be logged in to view your profile' })
     }
 
-    const USER_ID = decoded.user.user_id
 
     pool.query('SELECT posts.post_title, posts.post_body, users.username, posts.post_id, posts.post_date, posts.wasEdited, posts.isArchived, posts.edit_date, posts.isDeletedByAdmin, posts.poster_id FROM posts JOIN users ON user_id = poster_id AND post_id = ?', [ID], (err, result) => {
         if (err) throw err;
         const POSTER_ID = result[0].poster_id;
         pool.query('SELECT SUM (rating) AS rating FROM likes WHERE post_id = ?', [ID], (err, result2) => {
             if (err) throw err;
-            const post = result.map(post => {
-                const rating = result2[0].rating;
-                const time = post.post_date.toLocaleString();
-                const editTime = post.edit_date.toLocaleString();
-                return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
-            })
-            if (POSTER_ID === USER_ID) {
-                res.status(200).send({ ...post, isEditable: true });
+            if (decoded) {
+                const USER_ID = decoded.user.user_id
+                const post = result.map(post => {
+                    const rating = result2[0].rating;
+                    const time = post.post_date.toLocaleString();
+                    const editTime = post.edit_date.toLocaleString();
+                    return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
+                })
+                if (POSTER_ID === USER_ID) {
+                    res.status(200).send({ ...post, isEditable: true });
+                } else {
+                    res.status(200).send(post);
+                }
             } else {
-                res.status(200).send(post);
+                const post = result.map(post => {
+                    const rating = result2[0].rating;
+                    const time = post.post_date.toLocaleString();
+                    const editTime = post.edit_date.toLocaleString();
+                    return { ...result[0], like_amount: rating, post_date: time, edit_date: editTime }
+                })
+                    res.status(200).send(post)
             }
         })
     })
 }
+
 
 exports.rating = async (req, res) => {
     const rating = Math.min(Math.max(req.body.rating, -1), 1);
@@ -179,12 +190,11 @@ exports.getAnswers = async (req, res) => {
     let token, decoded;
     try {
         token = req.headers.authorization.split(' ')[1];
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = token && jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
         console.log(err)
         return res.status(401).send({ error: 'You must be logged in to view your profile' })
     }
-    const USER_ID = decoded.user.user_id;
 
     pool.query('SELECT answers.answer_body, answers.post_date, users.username, answers.answer_id, answers.edit_date, answers.wasEdited, answers.answerer_id, answers.isArchived FROM answers JOIN users ON users.user_id = answers.answerer_id JOIN posts ON answers.post_id = posts.post_id AND posts.post_id = ?', [ID], (err, result) => {
         if (err) throw err;
@@ -194,24 +204,34 @@ exports.getAnswers = async (req, res) => {
 
             pool.query('SELECT SUM (rating) AS rating, answer_id FROM answer_likes WHERE answer_id IN (?) GROUP BY answer_id', [answerIDs], (err, result2) => {
                 if (err) throw err;
-                const posts = result.map(post => {
-                    const rating = result2.find(res => res.answer_id === post.answer_id);
-                    const time = post.post_date.toLocaleString();
-                    const editTime = post.edit_date.toLocaleString();
-                    const like_amount = rating ? rating.rating : 0;
-                    return { ...post, rating: like_amount, id: answerID, post_date: time, edit_date: editTime, isEditable: false }
-                })
-                posts.map(answer => {
-                    const matchedAnswer = answer.answerer_id === USER_ID;
-                    return { ...answer, isEditable: matchedAnswer ? answer.isEditable = true : answer.isEditable = false}
-                })
-                res.status(200).send(posts)
+                if (decoded) {
+                    const USER_ID = decoded.user.user_id;
+                    const posts = result.map(post => {
+                        const rating = result2.find(res => res.answer_id === post.answer_id);
+                        const time = post.post_date.toLocaleString();
+                        const editTime = post.edit_date.toLocaleString();
+                        const like_amount = rating ? rating.rating : 0;
+                        return { ...post, rating: like_amount, id: answerID, post_date: time, edit_date: editTime, isEditable: false }
+                    })
+                    posts.map(answer => {
+                        const matchedAnswer = answer.answerer_id === USER_ID;
+                        return { ...answer, isEditable: matchedAnswer ? answer.isEditable = true : answer.isEditable = false }
+                    })
+                    res.status(200).send(posts)
+                } else {
+                    const posts = result.map(post => {
+                        const rating = result2.find(res => res.answer_id === post.answer_id);
+                        const time = post.post_date.toLocaleString();
+                        const like_amount = rating ? rating.rating : 0;
+                        return { ...post, rating: like_amount, post_date: time}
+                    })
+                        res.status(200).send(posts)
+                    }
             })
         }
     })
-    // const time = result.map(result => result.post_date.toLocaleString());
-    // res.status(200).send(result)
 }
+
 
 
 exports.editAnswer = async (req, res) => {
@@ -292,7 +312,7 @@ exports.deleteAnswer = async (req, res) => {
     const ANSWER_ID = req.body.id;
 
     pool.query('UPDATE answers SET isArchived = ? WHERE answer_id = ?', [true, ANSWER_ID], (err, result) => {
-        if(err) throw err;
+        if (err) throw err;
         res.status(200).send(result);
     })
 }

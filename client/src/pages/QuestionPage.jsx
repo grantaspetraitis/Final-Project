@@ -23,7 +23,7 @@ const QuestionPage = () => {
         const response = await fetch(`/questions/${params.id}`, {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
+                "Authorization": `Bearer ${login ? login.token : ''}`
             }
         });
         const json = await response.json();
@@ -34,7 +34,7 @@ const QuestionPage = () => {
         const response = await fetch(`/questions/${params.id}/answers`, {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${login.token}`
+                "Authorization": `Bearer ${login ? login.token : ''}`
             }
         });
         const json = await response.json();
